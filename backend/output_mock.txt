@@ -1,0 +1,14 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.5, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\jhapg\OneDrive\Desktop\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: c:\Users\jhapg\OneDrive\Desktop\backend
+configfile: pytest.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 3 items
+
+app/test/test_users_mock.py::test_create_user_success PASSED             [ 33%]
+app/test/test_users_mock.py::test_create_instructor_success PASSED       [ 66%]
+app/test/test_users_mock.py::test_create_user_existing_email PASSED      [100%]
+
+============================== 3 passed in 2.80s ==============================
