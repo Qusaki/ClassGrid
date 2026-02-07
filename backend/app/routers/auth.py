@@ -15,15 +15,15 @@ router = APIRouter()
 
 @router.post("/token", response_model=Token)
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
-    user = await User.find_one(User.email == form_data.username)
+    user = await User.find_one(User.user_id == form_data.username)
 
     if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(status_code=400, detail="Incorrect user_id or password")
 
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
 
     return {
-        "access_token": create_access_token(subject=user.email),
+        "access_token": create_access_token(subject=user.user_id),
         "token_type": "bearer",
     }

@@ -11,19 +11,24 @@ async def test_login():
     # init_db is handled by autouse fixture
 
     # Create a user manually
-    email = "testlogin@example.com"
+    user_id = "testlogin_user"
     password = "password123"
     hashed = get_password_hash(password)
 
-    existing_user = await User.find_one(User.email == email)
+    existing_user = await User.find_one(User.user_id == user_id)
     if not existing_user:
-        await User(email=email, hashed_password=hashed).create()
+        await User(
+            user_id=user_id,
+            firstname="Test",
+            lastname="Login",
+            hashed_password=hashed,
+        ).create()
 
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         response = await ac.post(
-            "/token", data={"username": email, "password": password}
+            "/token", data={"username": user_id, "password": password}
         )
 
     assert response.status_code == 200

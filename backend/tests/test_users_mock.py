@@ -41,12 +41,19 @@ def mock_deps():
 @pytest.mark.asyncio
 async def test_create_instructor_success(mock_user_db):
     mock_admin = User(
-        email="admin@example.com", role=UserRole.admin, hashed_password="hash"
+        user_id="admin_user",
+        firstname="Admin",
+        lastname="User",
+        role=UserRole.admin,
+        hashed_password="hash",
     )
     app.dependency_overrides[get_current_admin_user] = lambda: mock_admin
 
     mock_instance = mock_user_db.return_value
-    mock_instance.email = "instr@example.com"
+    mock_instance.user_id = "instructor1"
+    mock_instance.firstname = "Instructor"
+    mock_instance.lastname = "One"
+    mock_instance.middlename = None
     mock_instance.role = UserRole.instructor
     mock_instance.id = "507f1f77bcf86cd799439012"
     mock_instance.is_active = True
@@ -57,7 +64,9 @@ async def test_create_instructor_success(mock_user_db):
         response = await ac.post(
             "/users",
             json={
-                "email": "instr@example.com",
+                "user_id": "instructor1",
+                "firstname": "Instructor",
+                "lastname": "One",
                 "password": "password",
                 "role": "instructor",
             },
@@ -71,13 +80,21 @@ async def test_create_instructor_success(mock_user_db):
 @pytest.mark.asyncio
 async def test_create_user_existing_email(mock_user_db):
     mock_admin = User(
-        email="admin@example.com", role=UserRole.admin, hashed_password="hash"
+        user_id="admin_user",
+        firstname="Admin",
+        lastname="User",
+        role=UserRole.admin,
+        hashed_password="hash",
     )
     app.dependency_overrides[get_current_admin_user] = lambda: mock_admin
 
     # Simulate finding an existing user
     mock_existing = User(
-        email="existing@example.com", role=UserRole.instructor, hashed_password="hash"
+        user_id="existing_user",
+        firstname="Existing",
+        lastname="User",
+        role=UserRole.instructor,
+        hashed_password="hash",
     )
     # Also need fields for validation if response is returned, but here we expect 400 exception before response
 
@@ -92,7 +109,9 @@ async def test_create_user_existing_email(mock_user_db):
         response = await ac.post(
             "/users",
             json={
-                "email": "existing@example.com",
+                "user_id": "existing_user",
+                "firstname": "Existing",
+                "lastname": "User",
                 "password": "password",
                 "role": "instructor",
             },

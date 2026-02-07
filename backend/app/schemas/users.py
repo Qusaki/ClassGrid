@@ -1,19 +1,31 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 from app.models import UserRole
 
 
 class UserCreate(BaseModel):
-    email: EmailStr
+    user_id: str
+    firstname: str
+    lastname: str
+    middlename: Optional[str] = None
     password: str
     role: UserRole = UserRole.instructor
 
 
+from typing import Annotated, Any
+from pydantic import BeforeValidator
+
+PyObjectId = Annotated[str, BeforeValidator(str)]
+
+
 class UserResponse(BaseModel):
-    id: str  # Beanie uses PydanticObjectId, usually handled as str in response
-    email: EmailStr
+    id: PyObjectId  # Beanie uses PydanticObjectId, usually handled as str in response
+    user_id: str
+    firstname: str
+    lastname: str
+    middlename: Optional[str] = None
     role: UserRole
     is_active: bool
 
@@ -27,4 +39,4 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
+    user_id: Optional[str] = None

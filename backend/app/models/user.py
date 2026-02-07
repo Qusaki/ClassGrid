@@ -10,7 +10,10 @@ class UserRole(str, Enum):
 
 
 class User(Document):
-    email: str
+    user_id: str
+    firstname: str
+    lastname: str
+    middlename: str | None = None
     hashed_password: str
     role: UserRole = UserRole.instructor
     is_active: bool = True
@@ -18,5 +21,5 @@ class User(Document):
     class Settings:
         name = "users"
         indexes = [
-            "email",
+            "user_id",
         ]

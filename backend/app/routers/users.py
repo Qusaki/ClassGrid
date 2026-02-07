@@ -15,15 +15,18 @@ async def create_user(
         get_current_admin_user
     ),  # Only admins can create users
 ):
-    user = await User.find_one(User.email == user_in.email)
+    user = await User.find_one(User.user_id == user_in.user_id)
     if user:
         raise HTTPException(
             status_code=400,
-            detail="The user with this email already exists in the system.",
+            detail="The user with this user_id already exists in the system.",
         )
 
     user = User(
-        email=user_in.email,
+        user_id=user_in.user_id,
+        firstname=user_in.firstname,
+        lastname=user_in.lastname,
+        middlename=user_in.middlename,
         hashed_password=get_password_hash(user_in.password),
         role=user_in.role,
     )
