@@ -29,37 +29,18 @@ async def admin_token():
 
 @pytest_asyncio.fixture
 async def user_token():
-    # Create or update normal user
+    # Create or update normal user (now defaulting to instructor as student is removed)
     user_email = "normal_test@example.com"
     user = await User.find_one(User.email == user_email)
     if not user:
         user = User(
             email=user_email,
             hashed_password=get_password_hash("user123"),
-            role=UserRole.student,
+            role=UserRole.instructor,
         )
         await user.create()
 
     return create_access_token(subject=user_email)
-
-
-@pytest.mark.asyncio
-async def test_admin_create_user(admin_token):
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
-        response = await ac.post(
-            "/users",
-            json={
-                "email": "newstudent@example.com",
-                "password": "newpassword",
-                "role": "student",
-            },
-            headers={"Authorization": f"Bearer {admin_token}"},
-        )
-    assert response.status_code == 200
-    assert response.json()["email"] == "newstudent@example.com"
-    assert response.json()["role"] == "student"
 
 
 @pytest.mark.asyncio

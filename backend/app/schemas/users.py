@@ -8,7 +8,7 @@ from app.models import UserRole
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    role: UserRole = UserRole.student
+    role: UserRole = UserRole.instructor
 
 
 class UserResponse(BaseModel):

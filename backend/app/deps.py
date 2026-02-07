@@ -33,9 +33,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 async def get_current_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    print(
-        f"DEBUG: User: {current_user.email}, Role: {current_user.role}, Expected: {UserRole.admin}"
-    )
     if current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=403, detail="The user doesn't have enough privileges"
