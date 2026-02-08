@@ -12,8 +12,18 @@ from app.config import settings
 from app.db import init_db
 
 
-@pytest_asyncio.fixture(loop_scope="function", scope="function", autouse=True)
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def initialize_database():
-    client = AsyncIOMotorClient(settings.MONGODB_URL)
-    await client.drop_database(settings.MONGODB_DB_NAME)
-    await init_db()
+    print(
+        f"\nDEBUG: Connecting to {settings.MONGODB_URL} database {settings.MONGODB_DB_NAME}"
+    )
+    try:
+        client = AsyncIOMotorClient(settings.MONGODB_URL)
+        print("DEBUG: Dropping database...")
+        await client.drop_database(settings.MONGODB_DB_NAME)
+        print("DEBUG: Database dropped. Initializing Beanie...")
+        await init_db()
+        print("DEBUG: Beanie initialized.")
+    except Exception as e:
+        print(f"DEBUG: Error initializing database: {e}")
+        raise e

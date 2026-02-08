@@ -1,8 +1,10 @@
-from typing import Optional
+from typing import Annotated, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, BeforeValidator
 
 from app.models import UserRole
+
+PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
 class UserCreate(BaseModel):
@@ -14,10 +16,12 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.instructor
 
 
-from typing import Annotated, Any
-from pydantic import BeforeValidator
-
-PyObjectId = Annotated[str, BeforeValidator(str)]
+class UserUpdate(BaseModel):
+    firstname: Optional[str] = None
+    lastname: Optional[str] = None
+    middlename: Optional[str] = None
+    role: Optional[UserRole] = None
+    password: Optional[str] = None
 
 
 class UserResponse(BaseModel):
