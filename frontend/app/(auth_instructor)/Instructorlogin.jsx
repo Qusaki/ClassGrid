@@ -21,7 +21,7 @@ export default function Example() {
     const success = await login(form.email, form.password);
     if (success) {
       // Navigate to Instructor Menu
-      router.replace('/Imenu');
+      router.replace('/(tabs_instructor)');
     } else {
       Alert.alert('Login Failed', error || 'Invalid credentials');
     }
@@ -57,15 +57,15 @@ export default function Example() {
 
             <View style={styles.form}>
               <View style={styles.input}>
-                <Text style={styles.inputLabel}>Username</Text>
+                <Text style={styles.inputLabel}>Instructor ID</Text>
 
                 <TextInput
                   autoCapitalize="none"
                   autoCorrect={false}
                   clearButtonMode="while-editing"
-                  keyboardType="email-address"
+                  keyboardType="default"
                   onChangeText={email => setForm({ ...form, email })}
-                  placeholder="john@example.com"
+                  placeholder="Enter Instructor ID"
                   placeholderTextColor="#6b7280"
                   style={styles.inputControl}
                   value={form.email} />

@@ -1,15 +1,30 @@
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import useAuthStore from '../../store/authStore';
 import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect }) => {
   const navigation = useNavigation();
-  const handleLogout = () => {
-    setVisible(false);
-    setTimeout(() => {
-      alert("You have logged out!");
-    }, 300);
-    navigation.navigate("index");
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    try {
+      setVisible(false);
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Ensure navigation happens even if logout fails
+      if (router.canDismiss()) {
+        router.dismissAll();
+      }
+      router.replace("/");
+      setTimeout(() => {
+        alert("You have logged out!");
+      }, 500);
+    }
   }
   const [visible, setVisible] = useState(false);
   const handleSelect = (item) => {
@@ -47,7 +62,10 @@ const HeaderDropdownMenu = ({ options, onSelect }) => {
                     }
                   }}
                 >
-                  <Text style={styles.menuItemText}>{item.label}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name={item.icon} size={20} color="black" style={{ marginRight: 10 }} />
+                    <Text style={styles.menuItemText}>{item.label}</Text>
+                  </View>
                 </Pressable>
               )}
             />
@@ -269,28 +287,19 @@ const DropdownExample = () => {
     { subjectCode: 'NC 101', subjectDescription: 'Network and Communication', units: 3.00, schedule: 'Tue 11:00 AM - 2:00 PM', room: 'Computer Lab', section: 'BSCS 3A' },
     { subjectCode: 'CSE 2', subjectDescription: 'CS Elective ll', units: 3.00, schedule: 'Sat 1:00 PM - 4:00 PM', room: 'Hybrid Lab', section: 'BSCS 3A' },
   ]);
-  const [accountModalVisible, setAccountModalVisible] = useState(false);
-  const [termsModalVisible, setTermsModalVisible] = useState(false);
-  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
-  const [profileModalVisible, setProfileModalVisible] = useState(false);
+
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [personalDetails, setPersonalDetails] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '123-456-7890',
-    address: '123 Main St, City, Country',
-  });
+
 
   const headerOptions = [
-    { label: 'My Schedule', value: 'My Schedule' },
-    { label: 'Room Schedule', value: 'Room Schedule' },
-    { label: 'Account Setting', value: 'Account Setting' },
-    { label: 'Logout', value: 'Logout' },
+    { label: 'My Schedule', value: 'My Schedule', icon: 'calendar' },
+    { label: 'Room Schedule', value: 'Room Schedule', icon: 'business' },
+    { label: 'Logout', value: 'Logout', icon: 'log-out' },
   ];
 
   const showCourseSchedule = headerSelection === 'My Schedule';
   const showRoomSchedule = headerSelection === 'Room Schedule';
-  const showAccountSetting = headerSelection === 'Account Setting';
+
 
   // Get unique rooms
   const uniqueRooms = [...new Set(schedule.map(item => item.room))];
@@ -298,21 +307,7 @@ const DropdownExample = () => {
   // Filter schedules for selected room
   const roomSchedules = selectedRoom ? schedule.filter(item => item.room === selectedRoom) : [];
 
-  const handleAccountButton = () => {
-    setAccountModalVisible(true);
-  };
 
-  const handleTermsOfUse = () => {
-    setTermsModalVisible(true);
-  };
-
-  const handlePrivacy = () => {
-    setPrivacyModalVisible(true);
-  };
-
-  const handleProfile = () => {
-    setProfileModalVisible(true);
-  };
 
   const handleSelectRoom = (room) => {
     setSelectedRoom(room);
@@ -385,43 +380,9 @@ const DropdownExample = () => {
           </>
         )}
 
-        {showAccountSetting && (
-          <>
-            <Text style={styles.scheduleTitle}>Account Setting</Text>
-            <View style={styles.accountButtons}>
-              <TouchableOpacity style={styles.accountButton} onPress={handleAccountButton}>
-                <Text style={styles.accountButtonText}>Changes Password</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.accountButton} onPress={handleTermsOfUse}>
-                <Text style={styles.accountButtonText}>Terms of Use</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.accountButton} onPress={handlePrivacy}>
-                <Text style={styles.accountButtonText}>Privacy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.accountButton} onPress={handleProfile}>
-                <Text style={styles.accountButtonText}>Profile</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
 
-        <AccountModal
-          visible={accountModalVisible}
-          onClose={() => setAccountModalVisible(false)}
-        />
-        <TermsModal
-          visible={termsModalVisible}
-          onClose={() => setTermsModalVisible(false)}
-        />
-        <PrivacyModal
-          visible={privacyModalVisible}
-          onClose={() => setPrivacyModalVisible(false)}
-        />
-        <ProfileModal
-          visible={profileModalVisible}
-          onClose={() => setProfileModalVisible(false)}
-          personalDetails={personalDetails}
-        />
+
+
       </View>
     </ImageBackground>
   );
