@@ -1,7 +1,7 @@
 from typing import Optional
 from beanie import Document
 from pydantic import Field
-from app.models import DepartmentType
+from .user import DepartmentType
 
 
 class Subject(Document):

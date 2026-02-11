@@ -41,3 +41,13 @@ async def get_current_admin_user(
             status_code=403, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+
+async def get_current_chairperson_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role not in [UserRole.admin, UserRole.program_chairperson]:
+        raise HTTPException(
+            status_code=403, detail="The user doesn't have enough privileges"
+        )
+    return current_user

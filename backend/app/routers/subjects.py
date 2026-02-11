@@ -2,7 +2,11 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.deps import get_current_admin_user, get_current_user
+from app.deps import (
+    get_current_admin_user,
+    get_current_user,
+    get_current_chairperson_user,
+)
 from app.models import Subject, User
 from app.schemas.subjects import SubjectCreate, SubjectResponse, SubjectUpdate
 
@@ -12,10 +16,10 @@ router = APIRouter()
 @router.post("/", response_model=SubjectResponse, status_code=status.HTTP_201_CREATED)
 async def create_subject(
     subject_in: SubjectCreate,
-    current_admin: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_chairperson_user),
 ):
     """
-    Create a new subject. Only admins can do this.
+    Create a new subject. Only chairpersons (and admins) can do this.
     """
     existing_subject = await Subject.find_one(
         Subject.subject_code == subject_in.subject_code
@@ -65,10 +69,10 @@ async def read_subject(
 async def update_subject(
     subject_code: str,
     subject_in: SubjectUpdate,
-    current_admin: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_chairperson_user),
 ):
     """
-    Update a subject. Only admins can do this.
+    Update a subject. Only chairpersons (and admins) can do this.
     """
     subject = await Subject.find_one(Subject.subject_code == subject_code)
     if not subject:
@@ -101,10 +105,10 @@ async def update_subject(
 @router.delete("/{subject_code}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_subject(
     subject_code: str,
-    current_admin: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_chairperson_user),
 ):
     """
-    Delete a subject. Only admins can do this.
+    Delete a subject. Only chairpersons (and admins) can do this.
     """
     subject = await Subject.find_one(Subject.subject_code == subject_code)
     if not subject:
