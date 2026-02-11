@@ -14,7 +14,7 @@ class User(Document):
     firstname: str
     lastname: str
     middlename: str | None = None
-    password: str
+    password: str | None = None
     role: UserRole = UserRole.instructor
     is_active: bool = True
 

@@ -27,3 +27,6 @@ async def init_db():
             role=UserRole.admin,
         )
         await user.create()
+    elif not user.password:
+        user.password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
+        await user.save()

@@ -56,6 +56,7 @@ async def test_create_instructor_success(mock_user_db):
     mock_instance.middlename = None
     mock_instance.role = UserRole.instructor
     mock_instance.id = "507f1f77bcf86cd799439012"
+    mock_instance.password = None
     mock_instance.is_active = True
 
     async with AsyncClient(

@@ -31,7 +31,7 @@ class UserResponse(BaseModel):
     lastname: str
     middlename: Optional[str] = None
     role: UserRole
-    password: str
+    password: Optional[str] = None
     is_active: bool
 
     class Config:

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from httpx import AsyncClient, ASGITransport
 import asyncio
 from app.main import app
-from app.models import User, UserRole
+from app.models import UserRole
 
 
 # Re-use the mock_user_db fixture pattern or create a new one
@@ -58,6 +58,7 @@ async def test_admin_list_users_mock(mock_user_db_admin):
     user1.role = UserRole.instructor
     user1.is_active = True
     user1.middlename = None
+    user1.password = None
     user1.id = "id1"
 
     f_list = asyncio.Future()
@@ -100,6 +101,7 @@ async def test_admin_get_user_mock(mock_user_db_admin):
     mock_user.role = UserRole.instructor
     mock_user.is_active = True
     mock_user.middlename = None
+    mock_user.password = None
     mock_user.id = "target_id"
 
     f = asyncio.Future()
