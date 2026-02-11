@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 from app.config import settings
 from app.db import init_db
-from app.routers import auth, users, subjects
+from app.routers import auth, users, subjects, schedules
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -47,6 +47,7 @@ app.add_middleware(
 app.include_router(auth.router, tags=["auth"])
 app.include_router(users.router, tags=["users"])
 app.include_router(subjects.router, tags=["subjects"], prefix="/subjects")
+app.include_router(schedules.router, tags=["schedules"], prefix="/schedules")
 
 
 @app.get("/")

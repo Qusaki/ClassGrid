@@ -67,4 +67,18 @@ async def user_token(initialize_database):
         )
         await user.create()
 
-    return create_access_token(subject=user_id)
+
+from httpx import AsyncClient, ASGITransport
+from app.main import app
+
+
+@pytest_asyncio.fixture
+async def client():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
+
+
+@pytest_asyncio.fixture(scope="function")
+def token_headers(admin_token):
+    return {"Authorization": f"Bearer {admin_token}"}

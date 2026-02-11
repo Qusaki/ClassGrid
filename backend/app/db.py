@@ -3,7 +3,7 @@ from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config import settings
-from app.models import Item, User, UserRole, Subject
+from app.models import Item, User, UserRole, Subject, Schedule
 from app.security import get_password_hash
 
 
@@ -13,7 +13,8 @@ async def init_db():
     # In a real app, use environment variables for the URI.
     client = AsyncIOMotorClient(settings.MONGODB_URL, tlsCAFile=certifi.where())
     await init_beanie(
-        database=client[settings.MONGODB_DB_NAME], document_models=[Item, User, Subject]
+        database=client[settings.MONGODB_DB_NAME],
+        document_models=[Item, User, Subject, Schedule],
     )
 
     # Create initial superuser
