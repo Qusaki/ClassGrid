@@ -22,6 +22,7 @@ def mock_user_db_admin():
         mock_instance.lastname = "User"
         mock_instance.role = UserRole.instructor
         mock_instance.hashed_password = "hash"
+        mock_instance.password = "hash"
         mock_instance.is_active = True
         mock_instance.middlename = None
         mock_instance.id = "mock_obj_id"

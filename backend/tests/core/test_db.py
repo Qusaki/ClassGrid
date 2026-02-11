@@ -4,7 +4,7 @@ from app.models import Item
 
 
 @pytest.mark.asyncio
-async def test_db_connection():
+async def test_db_connection(initialize_database):
     # Initialize Beanie handled by conftest
     pass
 

@@ -17,7 +17,7 @@ router = APIRouter()
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
     user = await User.find_one(User.user_id == form_data.username)
 
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user or not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=400, detail="Incorrect user_id or password")
 
     if not user.is_active:

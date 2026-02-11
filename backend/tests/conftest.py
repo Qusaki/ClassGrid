@@ -10,6 +10,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import pytest_asyncio
 from app.config import settings
 from app.db import init_db
+from app.models import User, UserRole
+from app.security import create_access_token, get_password_hash
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
@@ -27,3 +29,42 @@ async def initialize_database():
     except Exception as e:
         print(f"DEBUG: Error initializing database: {e}")
         raise e
+
+
+@pytest_asyncio.fixture
+async def admin_token(initialize_database):
+    # Create or update admin
+    admin_id = "admin_user"
+    user = await User.find_one(User.user_id == admin_id)
+    if not user:
+        user = User(
+            user_id=admin_id,
+            firstname="Admin",
+            lastname="User",
+            password=get_password_hash("admin123"),
+            role=UserRole.admin,
+        )
+        await user.create()
+    elif user.role != UserRole.admin:
+        user.role = UserRole.admin
+        await user.save()
+
+    return create_access_token(subject=admin_id)
+
+
+@pytest_asyncio.fixture
+async def user_token(initialize_database):
+    # Create or update normal user (now defaulting to instructor as student is removed)
+    user_id = "normal_user"
+    user = await User.find_one(User.user_id == user_id)
+    if not user:
+        user = User(
+            user_id=user_id,
+            firstname="Normal",
+            lastname="User",
+            password=get_password_hash("user123"),
+            role=UserRole.instructor,
+        )
+        await user.create()
+
+    return create_access_token(subject=user_id)

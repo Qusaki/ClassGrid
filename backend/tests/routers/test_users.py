@@ -1,50 +1,7 @@
 import pytest
-import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.models import User, UserRole
-from app.security import create_access_token, get_password_hash
-
-
-@pytest_asyncio.fixture
-async def admin_token():
-    # init_db handled by autouse fixture in conftest
-    # Create or update admin
-    admin_id = "admin_user"
-    user = await User.find_one(User.user_id == admin_id)
-    if not user:
-        user = User(
-            user_id=admin_id,
-            firstname="Admin",
-            lastname="User",
-            hashed_password=get_password_hash("admin123"),
-            role=UserRole.admin,
-        )
-        await user.create()
-    elif user.role != UserRole.admin:
-        user.role = UserRole.admin
-        await user.save()
-
-    return create_access_token(subject=admin_id)
-
-
-@pytest_asyncio.fixture
-async def user_token():
-    # Create or update normal user (now defaulting to instructor as student is removed)
-    user_id = "normal_user"
-    user = await User.find_one(User.user_id == user_id)
-    if not user:
-        user = User(
-            user_id=user_id,
-            firstname="Normal",
-            lastname="User",
-            hashed_password=get_password_hash("user123"),
-            role=UserRole.instructor,
-        )
-        await user.create()
-
-    return create_access_token(subject=user_id)
 
 
 @pytest.mark.asyncio

@@ -14,7 +14,7 @@ class User(Document):
     firstname: str
     lastname: str
     middlename: str | None = None
-    hashed_password: str
+    password: str
     role: UserRole = UserRole.instructor
     is_active: bool = True
 

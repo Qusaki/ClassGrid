@@ -40,7 +40,7 @@ async def test_admin_update_user(admin_token):
         user_id="update_test",
         firstname="Update",
         lastname="Test",
-        hashed_password=get_password_hash("pass"),
+        password=get_password_hash("pass"),
         role=UserRole.instructor,
     )
     await user.create()
@@ -61,9 +61,7 @@ async def test_admin_update_user(admin_token):
     # Verify DB update
     updated_user = await User.find_one(User.user_id == "update_test")
     assert updated_user.firstname == "UpdatedName"
-    assert updated_user.hashed_password != get_password_hash(
-        "pass"
-    )  # Should be changed
+    assert updated_user.password != get_password_hash("pass")  # Should be changed
 
 
 @pytest.mark.asyncio
@@ -73,7 +71,7 @@ async def test_admin_delete_user(admin_token):
         user_id="delete_test",
         firstname="Delete",
         lastname="Test",
-        hashed_password=get_password_hash("pass"),
+        password=get_password_hash("pass"),
         role=UserRole.instructor,
     )
     await user.create()

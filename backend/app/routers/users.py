@@ -27,7 +27,7 @@ async def create_user(
         firstname=user_in.firstname,
         lastname=user_in.lastname,
         middlename=user_in.middlename,
-        hashed_password=get_password_hash(user_in.password),
+        password=get_password_hash(user_in.password),
         role=user_in.role,
     )
     await user.create()
@@ -85,7 +85,7 @@ async def update_user(
     if user_in.role is not None:
         user.role = user_in.role
     if user_in.password is not None:
-        user.hashed_password = get_password_hash(user_in.password)
+        user.password = get_password_hash(user_in.password)
 
     await user.save()
     return user

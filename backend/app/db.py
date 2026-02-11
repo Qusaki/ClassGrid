@@ -23,7 +23,7 @@ async def init_db():
             user_id=settings.FIRST_SUPERUSER,
             firstname="Admin",
             lastname="User",
-            hashed_password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
+            password=get_password_hash(settings.FIRST_SUPERUSER_PASSWORD),
             role=UserRole.admin,
         )
         await user.create()
