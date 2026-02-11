@@ -37,18 +37,6 @@ export default function TabLayout() {
           href: null,
         }}
       />
-      <Tabs.Screen
-        name="Imenu"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="Progmenu"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }

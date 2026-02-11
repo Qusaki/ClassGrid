@@ -141,13 +141,22 @@ const CreateUserForm = ({ onSave, onCancel, role = 'instructor', title = 'Create
   const [firstname, setFirstname] = useState('');
   const [middlename, setMiddlename] = useState('');
   const [lastname, setLastname] = useState('');
-  const [gmail, setGmail] = useState('');
   const [userid, setUserid] = useState('');
   const [password, setPassword] = useState('');
+  const [department, setDepartment] = useState('');
+  const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState(false);
+
+  const departments = [
+    { label: 'BSCS', value: 'BSCS' },
+    { label: 'BSED-English', value: 'BSED-English' },
+    { label: 'BSED-HR', value: 'BSED-HR' },
+    { label: 'BSBA', value: 'BSBA' },
+    { label: 'BEED', value: 'BEED' },
+  ];
 
   const handleSave = () => {
-    if (!firstname.trim() || !lastname.trim() || !gmail.trim() || !userid.trim() || !password.trim()) {
-      alert('Please fill in all fields.');
+    if (!firstname.trim() || !lastname.trim() || !userid.trim() || !password.trim() || !department) {
+      alert('Please fill in all fields including Department.');
       return;
     }
     // Pass individual fields to match backend schema
@@ -157,15 +166,16 @@ const CreateUserForm = ({ onSave, onCancel, role = 'instructor', title = 'Create
       lastname: lastname.trim(),
       user_id: userid.trim(),
       password: password.trim(),
-      role: role
+      role: role,
+      department: department,
     });
 
     setFirstname('');
     setMiddlename('');
     setLastname('');
-    setGmail('');
     setUserid('');
     setPassword('');
+    setDepartment('');
   };
 
   return (
@@ -189,13 +199,33 @@ const CreateUserForm = ({ onSave, onCancel, role = 'instructor', title = 'Create
         onChangeText={setLastname}
         style={styles.input}
       />
-      <TextInput
-        placeholder="Gmail Account"
-        value={gmail}
-        onChangeText={setGmail}
-        style={styles.input}
-        keyboardType="email-address"
-      />
+
+      <TouchableOpacity
+        style={[styles.input, { justifyContent: 'center' }]}
+        onPress={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
+      >
+        <Text style={{ color: department ? '#000' : '#888' }}>
+          {department || 'Select Department'}
+        </Text>
+      </TouchableOpacity>
+
+      {isDeptDropdownOpen && (
+        <View style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 5, marginBottom: 15, backgroundColor: '#f9f9f9' }}>
+          {departments.map((dept) => (
+            <TouchableOpacity
+              key={dept.value}
+              style={{ padding: 10, borderBottomWidth: 1, borderBottomColor: '#eee' }}
+              onPress={() => {
+                setDepartment(dept.value);
+                setIsDeptDropdownOpen(false);
+              }}
+            >
+              <Text>{dept.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       <TextInput
         placeholder="UserID"
         value={userid}
@@ -301,8 +331,7 @@ const ViewInfoList = ({ instructors }) => {
             {/* Combine names for display */}
             <Text style={styles.tableCell}>{`${instructor.firstname} ${instructor.middlename ? instructor.middlename + ' ' : ''}${instructor.lastname}`}</Text>
             <Text style={styles.tableCell}>{instructor.user_id || 'N/A'}</Text>
-            {/* Password is not returned by API for security */}
-            <Text style={styles.tableCell}>{'Hidden'}</Text>
+            <Text style={styles.tableCell}>{instructor.password || 'N/A'}</Text>
           </View>
         ))
       )}
@@ -351,6 +380,7 @@ const DropdownExample = () => {
   }, []);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const headerOptions = [
     { label: 'Create Instructor', value: 'Create Instructor', icon: 'person-add' },
@@ -358,6 +388,14 @@ const DropdownExample = () => {
     { label: 'Instructors & Chairs', value: 'Instructors', icon: 'people' },
     { label: 'View Info', value: 'View Info', icon: 'information-circle' },
     { label: 'Logout', value: 'Logout', icon: 'log-out' },
+  ];
+
+  const departments = [
+    { label: 'BSCS', value: 'BSCS' },
+    { label: 'BSED-English', value: 'BSED-English' },
+    { label: 'BSED-HR', value: 'BSED-HR' },
+    { label: 'BSBA', value: 'BSBA' },
+    { label: 'BEED', value: 'BEED' },
   ];
 
   const showInstructors = headerSelection === 'Instructors';
@@ -389,8 +427,6 @@ const DropdownExample = () => {
     try {
       await client.post('/users', user);
       Alert.alert("Success", `${user.role === 'program_chairperson' ? 'Program Chairperson' : 'Instructor'} created successfully.`);
-      setHeaderSelection(null);
-      fetchInstructors(); // Refresh list
       setHeaderSelection(null);
       fetchInstructors(); // Refresh list
     } catch (error) {
@@ -429,9 +465,29 @@ const DropdownExample = () => {
       { instructor: 'Iratus Glenn Cruz', subject: 'Software Engineering', time: '8:00 AM - 9:00 AM', room: 'Computer lab' },
       { instructor: 'Michael G. Albino', subject: 'Information Management', time: '9:00 AM - 10:00 AM', room: 'Hybrid Lab' },
     ]);
-    // Removed setInstructors to preserve created users
     setSelectedInstructor(null);
+    setSelectedDepartment(null);
   };
+
+  useEffect(() => {
+    // Reset department selection when changing menu items
+    setSelectedDepartment(null);
+  }, [headerSelection]);
+
+  const renderDepartmentSelection = () => (
+    <View style={styles.departmentListContainer}>
+      <Text style={styles.scheduleTitle}>Select Department</Text>
+      {departments.map((dept) => (
+        <TouchableOpacity
+          key={dept.value}
+          style={styles.departmentButton}
+          onPress={() => setSelectedDepartment(dept.value)}
+        >
+          <Text style={styles.departmentButtonText}>{dept.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
 
   return (
     <ImageBackground
@@ -449,38 +505,49 @@ const DropdownExample = () => {
 
         {showInstructors && (
           <>
-            {editingUser ? (
-              <EditUserForm
-                user={editingUser}
-                onSave={handleUpdateUser}
-                onCancel={handleCancelEdit}
-              />
+            {!selectedDepartment ? (
+              renderDepartmentSelection()
             ) : (
               <>
-                <Text style={styles.scheduleTitle}>Instructors & Chairs</Text>
-                {selectedInstructor ? (
-                  <InstructorSchedule
-                    instructorName={selectedInstructor}
-                    schedule={schedule}
-                    onBack={handleBackToInstructors}
+                <TouchableOpacity style={styles.backButton} onPress={() => setSelectedDepartment(null)}>
+                  <Text style={styles.backButtonText}>← Back to Departments</Text>
+                </TouchableOpacity>
+                <Text style={styles.scheduleTitle}>{departments.find(d => d.value === selectedDepartment)?.label}</Text>
+
+                {editingUser ? (
+                  <EditUserForm
+                    user={editingUser}
+                    onSave={handleUpdateUser}
+                    onCancel={handleCancelEdit}
                   />
                 ) : (
-                  <ScrollView style={{ flex: 1 }}>
-                    <Text style={styles.subHeader}>Instructors</Text>
-                    <InstructorsList
-                      instructors={instructors.filter(u => u.role === 'instructor')}
-                      onSelectInstructor={handleSelectInstructor}
-                      onDeleteInstructor={handleDeleteInstructor}
-                      onEditInstructor={handleEditClick}
-                    />
-                    <Text style={styles.subHeader}>Program Chairpersons</Text>
-                    <InstructorsList
-                      instructors={instructors.filter(u => u.role === 'program_chairperson')}
-                      onSelectInstructor={handleSelectInstructor}
-                      onDeleteInstructor={handleDeleteInstructor}
-                      onEditInstructor={handleEditClick}
-                    />
-                  </ScrollView>
+                  <>
+                    <Text style={styles.scheduleTitle}>Instructors & Chairs</Text>
+                    {selectedInstructor ? (
+                      <InstructorSchedule
+                        instructorName={selectedInstructor}
+                        schedule={schedule}
+                        onBack={handleBackToInstructors}
+                      />
+                    ) : (
+                      <ScrollView style={{ flex: 1 }}>
+                        <Text style={styles.subHeader}>Instructors</Text>
+                        <InstructorsList
+                          instructors={instructors.filter(u => u.role === 'instructor' && u.department === selectedDepartment)}
+                          onSelectInstructor={handleSelectInstructor}
+                          onDeleteInstructor={handleDeleteInstructor}
+                          onEditInstructor={handleEditClick}
+                        />
+                        <Text style={styles.subHeader}>Program Chairpersons</Text>
+                        <InstructorsList
+                          instructors={instructors.filter(u => u.role === 'program_chairperson' && u.department === selectedDepartment)}
+                          onSelectInstructor={handleSelectInstructor}
+                          onDeleteInstructor={handleDeleteInstructor}
+                          onEditInstructor={handleEditClick}
+                        />
+                      </ScrollView>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -506,19 +573,28 @@ const DropdownExample = () => {
         )}
 
         {showViewInfo && (
-          <ScrollView style={{ flex: 1 }}>
-            <Text style={styles.scheduleTitle}>View Info</Text>
+          <>
+            {!selectedDepartment ? (
+              renderDepartmentSelection()
+            ) : (
+              <ScrollView style={{ flex: 1 }}>
+                <TouchableOpacity style={styles.backButton} onPress={() => setSelectedDepartment(null)}>
+                  <Text style={styles.backButtonText}>← Back to Departments</Text>
+                </TouchableOpacity>
+                <Text style={styles.scheduleTitle}>{departments.find(d => d.value === selectedDepartment)?.label} Info</Text>
 
-            <Text style={styles.subHeader}>Instructors</Text>
-            <ViewInfoList
-              instructors={instructors.filter(u => u.role === 'instructor')}
-            />
+                <Text style={styles.subHeader}>Instructors</Text>
+                <ViewInfoList
+                  instructors={instructors.filter(u => u.role === 'instructor' && u.department === selectedDepartment)}
+                />
 
-            <Text style={styles.subHeader}>Program Chairpersons</Text>
-            <ViewInfoList
-              instructors={instructors.filter(u => u.role === 'program_chairperson')}
-            />
-          </ScrollView>
+                <Text style={styles.subHeader}>Program Chairpersons</Text>
+                <ViewInfoList
+                  instructors={instructors.filter(u => u.role === 'program_chairperson' && u.department === selectedDepartment)}
+                />
+              </ScrollView>
+            )}
+          </>
         )}
 
 
@@ -679,6 +755,29 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+  },
+  departmentListContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  departmentButton: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 10,
+    width: '80%',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  departmentButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 
