@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
+import useRequestStore from '../../store/requestStore';
 import { Alert, FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect, onLogout }) => {
@@ -79,7 +80,7 @@ const InstructorsList = ({ instructors, onSelectInstructor, onDeleteInstructor, 
         instructors.map((instructor) => (
           <View key={instructor.id} style={styles.tableRow}>
             <TouchableOpacity
-              style={[styles.tableCell, { flex: 2 }]}
+              style={[styles.tableCell, { flex: 3 }]} // Give name column more width
               onPress={() => onSelectInstructor(instructor.name)}
             >
               <Text style={styles.tableCellText}>{instructor.name}</Text>
@@ -341,6 +342,46 @@ const ViewInfoList = ({ instructors }) => {
   );
 };
 
+const RequestList = ({ requests, onStatusUpdate }) => {
+  return (
+    <View style={styles.tableContainer}>
+      <View style={[styles.tableRow, styles.tableHeader]}>
+        <Text style={[styles.tableCell, styles.headerCell]}>Instructor</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Department</Text>
+        <Text style={[styles.tableCell, styles.headerCell, { flex: 2 }]}>Message</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Status</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Action</Text>
+      </View>
+      {requests.length === 0 ? (
+        <Text style={{ padding: 10, fontStyle: 'italic' }}>No requests found.</Text>
+      ) : (
+        requests.map((req) => (
+          <View key={req.id} style={styles.tableRow}>
+            <Text style={styles.tableCell}>{req.instructor}</Text>
+            <Text style={styles.tableCell}>{req.department || 'N/A'}</Text>
+            <Text style={[styles.tableCell, { flex: 2 }]}>{req.message}</Text>
+            <Text style={[styles.tableCell, { color: req.status === 'Approved' ? 'green' : req.status === 'Rejected' ? 'red' : 'orange' }]}>
+              {req.status}
+            </Text>
+            <View style={styles.tableCell}>
+              {req.status === 'Pending' && (
+                <View style={{ flexDirection: 'row' }}>
+                  <TouchableOpacity onPress={() => onStatusUpdate(req.id, 'Approved')} style={{ marginRight: 5 }}>
+                    <Ionicons name="checkmark-circle" size={24} color="green" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => onStatusUpdate(req.id, 'Rejected')}>
+                    <Ionicons name="close-circle" size={24} color="red" />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        ))
+      )}
+    </View>
+  );
+};
+
 
 
 const DropdownExample = () => {
@@ -351,6 +392,9 @@ const DropdownExample = () => {
   ]);
   const [instructors, setInstructors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const requests = useRequestStore((state) => state.requests);
+  const updateRequestStatus = useRequestStore((state) => state.updateRequestStatus);
 
   const fetchInstructors = async () => {
     setIsLoading(true);
@@ -387,6 +431,7 @@ const DropdownExample = () => {
     { label: 'Create Instructor', value: 'Create Instructor', icon: 'person-add' },
     { label: 'Create Program Chairperson', value: 'Create Program Chair', icon: 'person-add' },
     { label: 'Instructors & Chairs', value: 'Instructors', icon: 'people' },
+    { label: 'Requests', value: 'Requests', icon: 'mail-unread' },
     { label: 'View Info', value: 'View Info', icon: 'information-circle' },
     { label: 'Logout', value: 'Logout', icon: 'log-out' },
   ];
@@ -561,6 +606,16 @@ const DropdownExample = () => {
           </ScrollView>
         )}
 
+        {headerSelection === 'Requests' && (
+          <ScrollView style={{ flex: 1 }}>
+            <Text style={styles.scheduleTitle}>Instructor Requests</Text>
+            <RequestList
+              requests={requests}
+              onStatusUpdate={updateRequestStatus}
+            />
+          </ScrollView>
+        )}
+
 
       </View>
     </ImageBackground>
@@ -569,7 +624,7 @@ const DropdownExample = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: 5,
     marginTop: 0,
     flex: 1,
   },
@@ -651,20 +706,21 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     flex: 1,
-    padding: 10,
-    fontSize: 16,
+    padding: 4,
+    fontSize: 12,
   },
   headerCell: {
     color: 'white',
     fontWeight: 'bold',
   },
   tableCellText: {
-    fontSize: 16,
+    fontSize: 12,
   },
   actionsCell: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'flex-end', // Align buttons to the right
     alignItems: 'center',
+    paddingRight: 5, // Reduced from 10
   },
   actionButton: {
     backgroundColor: '#070707ff',

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import useAuthStore from '../../store/authStore';
 import { getSchedules } from '../../api/schedules';
 import { getSubjects } from '../../api/subjects';
+import useRequestStore from '../../store/requestStore';
 import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect }) => {
@@ -282,6 +283,27 @@ const DropdownExample = () => {
   const [headerSelection, setHeaderSelection] = useState(null);
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [requestText, setRequestText] = useState('');
+  const addRequest = useRequestStore((state) => state.addRequest);
+
+  const handleSendRequest = () => {
+    if (!requestText.trim()) {
+      alert("Please enter a request.");
+      return;
+    }
+    const storeUser = useAuthStore.getState().user;
+    const instructorName = storeUser?.firstname && storeUser?.lastname
+      ? `${storeUser.firstname} ${storeUser.lastname}`
+      : (storeUser?.name || storeUser?.email || "Instructor");
+
+    addRequest({
+      instructor: instructorName,
+      message: requestText,
+      department: storeUser?.department
+    });
+    setRequestText('');
+    alert("Request sent to Admin!");
+  };
 
   const [selectedRoom, setSelectedRoom] = useState(null);
 
@@ -329,19 +351,19 @@ const DropdownExample = () => {
 
   const headerOptions = [
     { label: 'My Schedule', value: 'My Schedule', icon: 'calendar' },
-    { label: 'Room Schedule', value: 'Room Schedule', icon: 'business' },
+    { label: 'Request', value: 'Request', icon: 'document-text' }, // Changed icon to document-text
     { label: 'Logout', value: 'Logout', icon: 'log-out' },
   ];
 
   const showCourseSchedule = headerSelection === 'My Schedule';
-  const showRoomSchedule = headerSelection === 'Room Schedule';
+  const showRequest = headerSelection === 'Request';
 
 
-  // Get unique rooms
-  const uniqueRooms = [...new Set(schedule.map(item => item.room))];
+  // Get unique rooms - Removed as Room Schedule is gone
+  // const uniqueRooms = [...new Set(schedule.map(item => item.room))];
 
-  // Filter schedules for selected room
-  const roomSchedules = selectedRoom ? schedule.filter(item => item.room === selectedRoom) : [];
+  // Filter schedules for selected room - Removed
+  // const roomSchedules = selectedRoom ? schedule.filter(item => item.room === selectedRoom) : [];
 
 
 
@@ -388,18 +410,18 @@ const DropdownExample = () => {
                   <View style={[styles.tableRow, styles.tableHeader]}>
                     <Text style={[styles.tableCell, styles.headerCell]}>Subject Code</Text>
                     <Text style={[styles.tableCell, styles.headerCell]}>Subject Description</Text>
+                    <Text style={[styles.tableCell, styles.headerCell]}>Room</Text>
                     <Text style={[styles.tableCell, styles.headerCell]}>Units</Text>
                     <Text style={[styles.tableCell, styles.headerCell]}>Schedule</Text>
-                    <Text style={[styles.tableCell, styles.headerCell]}>Room</Text>
                     <Text style={[styles.tableCell, styles.headerCell]}>Section</Text>
                   </View>
                   {schedule.map((item, index) => (
                     <View key={index} style={styles.tableRow}>
                       <Text style={styles.tableCell}>{item.subjectCode}</Text>
                       <Text style={styles.tableCell}>{item.subjectDescription}</Text>
+                      <Text style={styles.tableCell}>{item.room}</Text>
                       <Text style={styles.tableCell}>{item.units}</Text>
                       <Text style={styles.tableCell}>{item.schedule}</Text>
-                      <Text style={styles.tableCell}>{item.room}</Text>
                       <Text style={styles.tableCell}>{item.section}</Text>
                     </View>
                   ))}
@@ -409,19 +431,24 @@ const DropdownExample = () => {
           </>
         )}
 
-        {showRoomSchedule && (
-          <>
-            <Text style={styles.scheduleTitle}>Room Schedule</Text>
-            {schedule.length === 0 ? (
-              <Text style={{ padding: 10, fontStyle: 'italic', color: 'white' }}>
-                No schedule entries.
-              </Text>
-            ) : selectedRoom ? (
-              <RoomWeeklySchedule room={selectedRoom} schedules={roomSchedules} onBack={handleBackToRoomList} />
-            ) : (
-              <RoomList rooms={uniqueRooms} onSelectRoom={handleSelectRoom} />
-            )}
-          </>
+
+        {showRequest && (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 20, color: 'white', fontWeight: 'bold' }}>Submit a Request to Admin</Text>
+            <TextInput
+              placeholder="Type your request here..."
+              value={requestText}
+              onChangeText={setRequestText}
+              style={{ backgroundColor: 'white', width: '100%', padding: 10, borderRadius: 5, marginTop: 20, minHeight: 100, textAlignVertical: 'top' }}
+              multiline
+            />
+            <TouchableOpacity
+              style={{ backgroundColor: '#007AFF', padding: 10, borderRadius: 5, marginTop: 10 }}
+              onPress={handleSendRequest}
+            >
+              <Text style={{ color: 'white' }}>Submit Request</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
 

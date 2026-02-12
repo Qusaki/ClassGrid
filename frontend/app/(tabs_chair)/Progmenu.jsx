@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from 'react';
 import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createSubject, getSubjects } from '../../api/subjects';
 import { createSchedule, getSchedules } from '../../api/schedules';
 import client from '../../api/client';
@@ -56,7 +57,10 @@ const HeaderDropdownMenu = ({ options, onSelect }) => {
                     }
                   }}
                 >
-                  <Text style={styles.menuItemText}>{item.label}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Ionicons name={item.icon} size={20} color="black" style={{ marginRight: 10 }} />
+                    <Text style={styles.menuItemText}>{item.label}</Text>
+                  </View>
                 </Pressable>
               )}
             />
@@ -715,9 +719,9 @@ const DropdownExample = () => {
 
 
   const headerOptions = [
-    { label: 'Create Schedule', value: 'Create Schedule' },
-    { label: 'Schedule List', value: 'Schedule List' },
-    { label: 'Logout', value: 'Logout' },
+    { label: 'Create Schedule', value: 'Create Schedule', icon: 'create-outline' },
+    { label: 'Schedule List', value: 'Schedule List', icon: 'list-outline' },
+    { label: 'Logout', value: 'Logout', icon: 'log-out-outline' },
   ];
 
   const showSchedule = headerSelection === 'Create Schedule';
@@ -919,21 +923,21 @@ const DropdownExample = () => {
                 <ScrollView horizontal>
                   <View style={styles.tableContainer}>
                     <View style={[styles.tableRow, styles.tableHeader]}>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Subject Code</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Subject Description</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Room</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Units</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Schedule (Date & Time)</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Section</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 100, flex: 0 }]}>Subject Code</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 200, flex: 0 }]}>Subject Description</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 100, flex: 0 }]}>Room</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 60, flex: 0 }]}>Units</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 200, flex: 0 }]}>Schedule (Date & Time)</Text>
+                      <Text style={[styles.tableCell, styles.headerCell, { width: 80, flex: 0 }]}>Section</Text>
                     </View>
                     {schedule.filter(s => s.instructor === viewingInstructor).map((item, index) => (
                       <View key={index} style={styles.tableRow}>
-                        <Text style={styles.tableCell}>{item.subjectCode}</Text>
-                        <Text style={styles.tableCell}>{item.subjectDescription}</Text>
-                        <Text style={styles.tableCell}>{item.room}</Text>
-                        <Text style={styles.tableCell}>{item.units}</Text>
-                        <Text style={styles.tableCell}>{item.schedule}</Text>
-                        <Text style={styles.tableCell}>{item.section}</Text>
+                        <Text style={[styles.tableCell, { width: 100, flex: 0 }]}>{item.subjectCode}</Text>
+                        <Text style={[styles.tableCell, { width: 200, flex: 0 }]}>{item.subjectDescription}</Text>
+                        <Text style={[styles.tableCell, { width: 100, flex: 0 }]}>{item.room}</Text>
+                        <Text style={[styles.tableCell, { width: 60, flex: 0 }]}>{item.units}</Text>
+                        <Text style={[styles.tableCell, { width: 200, flex: 0 }]}>{item.schedule}</Text>
+                        <Text style={[styles.tableCell, { width: 80, flex: 0 }]}>{item.section}</Text>
                       </View>
                     ))}
                   </View>
