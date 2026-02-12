@@ -686,9 +686,27 @@ const DropdownExample = () => {
   };
 
   const fetchInstructors = async () => {
-    // For now, this might not fetch anything since user wants it reverted to local logic.
-    // Keeping function structure to avoid ReferenceErrors, but clearing it.
-    setInstructors([]);
+    if (!user || !user.department) return;
+    setLoadingInstructors(true);
+    try {
+      // Fetch all users in the chairperson's department
+      const response = await client.get(`/users/department/${user.department}`);
+      // Filter strictly for instructors (ignore other roles like admin or chairperson)
+      const instructorList = response.data.filter(u => u.role === 'instructor');
+
+      const mapped = instructorList.map(inst => ({
+        id: inst.user_id,
+        name: `${inst.firstname} ${inst.middlename ? inst.middlename + ' ' : ''}${inst.lastname}`.trim()
+      }));
+      setInstructors(mapped);
+      setInstructorsError(null);
+    } catch (e) {
+      console.error("Failed to fetch instructors:", e);
+      setInstructorsError("Failed to load instructors.");
+      // Fallback or empty list is already set by default state
+    } finally {
+      setLoadingInstructors(false);
+    }
   };
 
   useEffect(() => {

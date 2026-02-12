@@ -200,11 +200,18 @@ const CreateUserForm = ({ onSave, onCancel, role = 'instructor', title = 'Create
         style={styles.input}
       />
 
+      <TextInput
+        placeholder="UserID"
+        value={userid}
+        onChangeText={setUserid}
+        style={styles.input}
+      />
+
       <TouchableOpacity
         style={[styles.input, { justifyContent: 'center' }]}
         onPress={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
       >
-        <Text style={{ color: department ? '#000' : '#888' }}>
+        <Text style={[styles.headerButtonText, { color: department ? '#000' : '#888' }]}>
           {department || 'Select Department'}
         </Text>
       </TouchableOpacity>
@@ -225,13 +232,6 @@ const CreateUserForm = ({ onSave, onCancel, role = 'instructor', title = 'Create
           ))}
         </View>
       )}
-
-      <TextInput
-        placeholder="UserID"
-        value={userid}
-        onChangeText={setUserid}
-        style={styles.input}
-      />
       <TextInput
         placeholder="Password"
         value={password}
@@ -321,6 +321,7 @@ const ViewInfoList = ({ instructors }) => {
       <View style={[styles.tableRow, styles.tableHeader]}>
         <Text style={[styles.tableCell, styles.headerCell]}>Name</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>UserID</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Department</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Password</Text>
       </View>
       {instructors.length === 0 ? (
@@ -331,6 +332,7 @@ const ViewInfoList = ({ instructors }) => {
             {/* Combine names for display */}
             <Text style={styles.tableCell}>{`${instructor.firstname} ${instructor.middlename ? instructor.middlename + ' ' : ''}${instructor.lastname}`}</Text>
             <Text style={styles.tableCell}>{instructor.user_id || 'N/A'}</Text>
+            <Text style={styles.tableCell}>{instructor.department || 'N/A'}</Text>
             <Text style={styles.tableCell}>{instructor.password || 'N/A'}</Text>
           </View>
         ))
@@ -380,7 +382,6 @@ const DropdownExample = () => {
   }, []);
   const [selectedInstructor, setSelectedInstructor] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   const headerOptions = [
     { label: 'Create Instructor', value: 'Create Instructor', icon: 'person-add' },
@@ -466,28 +467,11 @@ const DropdownExample = () => {
       { instructor: 'Michael G. Albino', subject: 'Information Management', time: '9:00 AM - 10:00 AM', room: 'Hybrid Lab' },
     ]);
     setSelectedInstructor(null);
-    setSelectedDepartment(null);
   };
 
   useEffect(() => {
-    // Reset department selection when changing menu items
-    setSelectedDepartment(null);
+    // Reset selection when changing menu items
   }, [headerSelection]);
-
-  const renderDepartmentSelection = () => (
-    <View style={styles.departmentListContainer}>
-      <Text style={styles.scheduleTitle}>Select Department</Text>
-      {departments.map((dept) => (
-        <TouchableOpacity
-          key={dept.value}
-          style={styles.departmentButton}
-          onPress={() => setSelectedDepartment(dept.value)}
-        >
-          <Text style={styles.departmentButtonText}>{dept.label}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
 
   return (
     <ImageBackground
@@ -505,49 +489,38 @@ const DropdownExample = () => {
 
         {showInstructors && (
           <>
-            {!selectedDepartment ? (
-              renderDepartmentSelection()
+            {editingUser ? (
+              <EditUserForm
+                user={editingUser}
+                onSave={handleUpdateUser}
+                onCancel={handleCancelEdit}
+              />
             ) : (
               <>
-                <TouchableOpacity style={styles.backButton} onPress={() => setSelectedDepartment(null)}>
-                  <Text style={styles.backButtonText}>← Back to Departments</Text>
-                </TouchableOpacity>
-                <Text style={styles.scheduleTitle}>{departments.find(d => d.value === selectedDepartment)?.label}</Text>
-
-                {editingUser ? (
-                  <EditUserForm
-                    user={editingUser}
-                    onSave={handleUpdateUser}
-                    onCancel={handleCancelEdit}
+                <Text style={styles.scheduleTitle}>Instructors & Chairs</Text>
+                {selectedInstructor ? (
+                  <InstructorSchedule
+                    instructorName={selectedInstructor}
+                    schedule={schedule}
+                    onBack={handleBackToInstructors}
                   />
                 ) : (
-                  <>
-                    <Text style={styles.scheduleTitle}>Instructors & Chairs</Text>
-                    {selectedInstructor ? (
-                      <InstructorSchedule
-                        instructorName={selectedInstructor}
-                        schedule={schedule}
-                        onBack={handleBackToInstructors}
-                      />
-                    ) : (
-                      <ScrollView style={{ flex: 1 }}>
-                        <Text style={styles.subHeader}>Instructors</Text>
-                        <InstructorsList
-                          instructors={instructors.filter(u => u.role === 'instructor' && u.department === selectedDepartment)}
-                          onSelectInstructor={handleSelectInstructor}
-                          onDeleteInstructor={handleDeleteInstructor}
-                          onEditInstructor={handleEditClick}
-                        />
-                        <Text style={styles.subHeader}>Program Chairpersons</Text>
-                        <InstructorsList
-                          instructors={instructors.filter(u => u.role === 'program_chairperson' && u.department === selectedDepartment)}
-                          onSelectInstructor={handleSelectInstructor}
-                          onDeleteInstructor={handleDeleteInstructor}
-                          onEditInstructor={handleEditClick}
-                        />
-                      </ScrollView>
-                    )}
-                  </>
+                  <ScrollView style={{ flex: 1 }}>
+                    <Text style={styles.subHeader}>Instructors</Text>
+                    <InstructorsList
+                      instructors={instructors.filter(u => u.role === 'instructor')}
+                      onSelectInstructor={handleSelectInstructor}
+                      onDeleteInstructor={handleDeleteInstructor}
+                      onEditInstructor={handleEditClick}
+                    />
+                    <Text style={styles.subHeader}>Program Chairpersons</Text>
+                    <InstructorsList
+                      instructors={instructors.filter(u => u.role === 'program_chairperson')}
+                      onSelectInstructor={handleSelectInstructor}
+                      onDeleteInstructor={handleDeleteInstructor}
+                      onEditInstructor={handleEditClick}
+                    />
+                  </ScrollView>
                 )}
               </>
             )}
@@ -573,28 +546,19 @@ const DropdownExample = () => {
         )}
 
         {showViewInfo && (
-          <>
-            {!selectedDepartment ? (
-              renderDepartmentSelection()
-            ) : (
-              <ScrollView style={{ flex: 1 }}>
-                <TouchableOpacity style={styles.backButton} onPress={() => setSelectedDepartment(null)}>
-                  <Text style={styles.backButtonText}>← Back to Departments</Text>
-                </TouchableOpacity>
-                <Text style={styles.scheduleTitle}>{departments.find(d => d.value === selectedDepartment)?.label} Info</Text>
+          <ScrollView style={{ flex: 1 }}>
+            <Text style={styles.scheduleTitle}>View Info</Text>
 
-                <Text style={styles.subHeader}>Instructors</Text>
-                <ViewInfoList
-                  instructors={instructors.filter(u => u.role === 'instructor' && u.department === selectedDepartment)}
-                />
+            <Text style={styles.subHeader}>Instructors</Text>
+            <ViewInfoList
+              instructors={instructors.filter(u => u.role === 'instructor')}
+            />
 
-                <Text style={styles.subHeader}>Program Chairpersons</Text>
-                <ViewInfoList
-                  instructors={instructors.filter(u => u.role === 'program_chairperson' && u.department === selectedDepartment)}
-                />
-              </ScrollView>
-            )}
-          </>
+            <Text style={styles.subHeader}>Program Chairpersons</Text>
+            <ViewInfoList
+              instructors={instructors.filter(u => u.role === 'program_chairperson')}
+            />
+          </ScrollView>
         )}
 
 
