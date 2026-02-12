@@ -6,19 +6,19 @@ import useAuthStore from '../../store/authStore';
 export default function Example() {
   const router = useRouter();
   const [form, setForm] = useState({
-    email: '',
+    userId: '',
     password: '',
   });
 
   const { login, isLoading, error } = useAuthStore();
 
   const handleLogin = async () => {
-    if (!form.email || !form.password) {
-      Alert.alert('Error', 'Please enter both email and password');
+    if (!form.userId || !form.password) {
+      Alert.alert('Error', 'Please enter both UserID and password');
       return;
     }
 
-    const success = await login(form.email, form.password);
+    const success = await login(form.userId, form.password);
     if (success) {
       // Navigate to Program Chair Menu
       router.replace('/Progmenu');
@@ -57,18 +57,18 @@ export default function Example() {
 
             <View style={styles.form}>
               <View style={styles.input}>
-                <Text style={styles.inputLabel}>Username</Text>
+                <Text style={styles.inputLabel}>UserID</Text>
 
                 <TextInput
                   autoCapitalize="none"
                   autoCorrect={false}
                   clearButtonMode="while-editing"
-                  keyboardType="email-address"
-                  onChangeText={email => setForm({ ...form, email })}
-                  placeholder="john@example.com"
+                  keyboardType="default"
+                  onChangeText={userId => setForm({ ...form, userId })}
+                  placeholder="Enter UserID"
                   placeholderTextColor="#6b7280"
                   style={styles.inputControl}
-                  value={form.email} />
+                  value={form.userId} />
               </View>
 
               <View style={styles.input}>

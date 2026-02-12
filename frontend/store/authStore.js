@@ -28,8 +28,8 @@ const useAuthStore = create((set, get) => ({
             await SecureStore.setItemAsync('token', access_token);
             set({ token: access_token });
 
-            // 3. Get User Actions (Optional, depends if /users/me exists and is needed immediately)
-            // await get().fetchUser(); 
+            // 3. Get User Actions
+            await get().fetchUser();
 
             set({ isLoading: false });
             return true; // Success

@@ -1,8 +1,9 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuthStore from '../../store/authStore';
-import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { getSchedules } from '../../api/schedules';
+import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect }) => {
   const navigation = useNavigation();
@@ -276,19 +277,39 @@ const ProfileModal = ({ visible, onClose, personalDetails }) => {
 };
 
 const DropdownExample = () => {
+  const user = useAuthStore((state) => state.user);
   const [headerSelection, setHeaderSelection] = useState(null);
-  const [schedule, setSchedule] = useState([
-    { subjectCode: 'SE 101', subjectDescription: 'Software Engineering l', units: 1.00, schedule: 'Mon 8:00 AM - 9:00 AM', room: 'Computer Lab', section: 'BSCS 3A' },
-    { subjectCode: 'CC 105', subjectDescription: 'Information Management', units: 1.00, schedule: 'Tue 9:00 AM - 10:00 AM', room: 'Computer Lab', section: 'BSCS 3A' },
-    { subjectCode: 'CS 201', subjectDescription: 'Data Structures', units: 1.00, schedule: 'Wed 10:00 AM - 11:00 AM', room: 'Computer Lab', section: 'BSCS 3A' },
-    { subjectCode: 'IT 301', subjectDescription: 'Network Security', units: 1.00, schedule: 'Thu 1:00 PM - 2:00 PM', room: 'Hybrid Lab', section: 'BSCS 3A' },
-    { subjectCode: 'SE 102', subjectDescription: 'Software Engineering ll', units: 1.00, schedule: 'Fri 2:00 PM - 3:00 PM', room: 'Hybrid Lab', section: 'BSCS 3A' },
-    { subjectCode: 'CSE 2', subjectDescription: 'CS Elective ll', units: 1.00, schedule: 'Fri 3:00 PM - 4:00 PM', room: 'Hybrid Lab', section: 'BSCS 3A' },
-    { subjectCode: 'NC 101', subjectDescription: 'Network and Communication', units: 3.00, schedule: 'Tue 11:00 AM - 2:00 PM', room: 'Computer Lab', section: 'BSCS 3A' },
-    { subjectCode: 'CSE 2', subjectDescription: 'CS Elective ll', units: 3.00, schedule: 'Sat 1:00 PM - 4:00 PM', room: 'Hybrid Lab', section: 'BSCS 3A' },
-  ]);
+  const [schedule, setSchedule] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const [selectedRoom, setSelectedRoom] = useState(null);
+
+  const fetchSchedules = async () => {
+    if (!user?.user_id) return;
+    setLoading(true);
+    try {
+      const data = await getSchedules(user.user_id);
+      // Map backend fields to frontend local state format
+      const mapped = data.map(s => {
+        const dayMap = { 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday' };
+        return {
+          ...s,
+          subjectCode: s.subject_code,
+          subjectDescription: s.subject_description || 'N/A',
+          schedule: `${dayMap[s.day] || s.day}, ${s.start_time}-${s.end_time}`
+        };
+      });
+      setSchedule(mapped);
+    } catch (error) {
+      console.error("Fetch schedules error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [user]);
 
 
   const headerOptions = [
@@ -326,10 +347,18 @@ const DropdownExample = () => {
       style={styles.container}
     >
       <View style={styles.container}>
-        <HeaderDropdownMenu options={headerOptions} onSelect={setHeaderSelection} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <HeaderDropdownMenu options={headerOptions} onSelect={setHeaderSelection} />
+          {user?.department && (
+            <View style={{ backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 5 }}>
+              <Text style={{ color: 'white', fontWeight: 'bold' }}>{user.department} Department</Text>
+            </View>
+          )}
+        </View>
         {headerSelection && (
           <Text style={styles.selectedText}>Selected Menu: {headerSelection}</Text>
         )}
+        {loading && <ActivityIndicator size="large" color="#0000ff" />}
 
         {showCourseSchedule && (
           <>
