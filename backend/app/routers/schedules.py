@@ -69,7 +69,7 @@ async def create_schedule(schedule_in: ScheduleCreate):
 @router.get("/", response_model=List[ScheduleOut])
 async def read_schedules(
     instructor_id: Optional[str] = None,
-    room: str,
+    room: Optional[str] = None,
     day: Optional[DayOfWeek] = None,
     skip: int = 0,
     limit: int = 100,
