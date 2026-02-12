@@ -1,5 +1,7 @@
-from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import Optional, Annotated
+from pydantic import BaseModel, Field, field_validator, BeforeValidator
+
+PyObjectId = Annotated[str, BeforeValidator(str)]
 
 from app.models.schedule import DayOfWeek
 
@@ -53,7 +55,7 @@ class ScheduleUpdate(BaseModel):
 
 
 class ScheduleOut(ScheduleBase):
-    id: str
+    id: PyObjectId
 
     class Config:
         from_attributes = True
