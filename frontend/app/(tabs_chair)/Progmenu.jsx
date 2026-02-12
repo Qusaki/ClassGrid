@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from 'react';
 import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
-import { createSubject } from '../../api/subjects';
+import { createSubject, getSubjects } from '../../api/subjects';
 import { createSchedule, getSchedules } from '../../api/schedules';
 import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
@@ -366,6 +366,7 @@ const EditViewingModal = ({ visible, onClose, onSave, initialName }) => {
 
 const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: propsInstructors = [] }) => {
   const [subjectCode, setSubjectCode] = useState('');
+  const [subjectDescription, setSubjectDescription] = useState('');
   const [newSubjectCode, setNewSubjectCode] = useState('');
   const [newSubjectDescription, setNewSubjectDescription] = useState('');
   const [instructor, setInstructor] = useState('');
@@ -382,6 +383,25 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
 
   const days = DAYS;
 
+  const parseTime = (timeStr) => {
+    // Basic parser for "8am", "8:30am", "1pm", "13:00", "08:00"
+    const lower = timeStr.toLowerCase().trim();
+    const isPm = lower.includes('pm');
+    const isAm = lower.includes('am');
+    let time = lower.replace(/[a-z]/g, '').trim();
+    let [hours, minutes] = time.split(':');
+
+    if (!minutes) minutes = '00';
+
+    let h = parseInt(hours, 10);
+    if (isNaN(h)) return timeStr; // Return original if parsing fails
+
+    if (isPm && h < 12) h += 12;
+    if (isAm && h === 12) h = 0;
+
+    return `${h.toString().padStart(2, '0')}:${minutes}`;
+  };
+
   const parseScheduleString = (schedString) => {
     const [dayPart, timePart] = schedString.split(', ');
     const [start, end] = timePart.split('-');
@@ -391,14 +411,17 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
     };
     return {
       day: dayMap[dayPart],
-      start_time: start,
-      end_time: end
+      start_time: parseTime(start),
+      end_time: parseTime(end)
     };
   };
 
+  const [section, setSection] = useState('');
+  const [room, setRoom] = useState('');
+
   const handleCreateSubject = async () => {
     if (!newSubjectCode.trim() || !newSubjectDescription.trim() || !units.trim()) {
-      Alert.alert('Error', 'Please fill in subject fields (Code, Description) and ensure Units are set.');
+      Alert.alert('Error', 'Please fill in subject fields (Code, Description, Units).');
       return;
     }
 
@@ -411,12 +434,21 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
 
       await createSubject(newSubject);
       setSubjectCode(newSubject.subject_code);
+      setSubjectDescription(newSubject.subject_description);
       setNewSubjectCode('');
       setNewSubjectDescription('');
+      // Keep units set as it might be useful, or clear it? Better to clear or keep synced?
+      // actually units state is shared.
       setSubjectModalVisible(false);
       Alert.alert('Success', 'Subject created successfully!');
     } catch (error) {
-      Alert.alert('Error', typeof error === 'string' ? error : (error.detail || 'Failed to create subject'));
+      let errorMessage = 'Failed to create subject';
+      if (error && error.detail) {
+        errorMessage = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -438,8 +470,8 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
   };
 
   const handleSave = async () => {
-    if (!subjectCode.trim() || !instructor || !units || schedules.length === 0) {
-      alert('Please fill in all fields (Subject, Instructor, Units) and add at least one schedule.');
+    if (!subjectCode.trim() || !instructor || !units || schedules.length === 0 || !room.trim() || !section.trim()) {
+      alert('Please fill in all fields (Subject, Instructor, Units, Room, Section) and add at least one schedule.');
       return;
     }
 
@@ -458,6 +490,8 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
           day: parsed.day,
           start_time: parsed.start_time,
           end_time: parsed.end_time,
+          room: room.trim(),
+          section: section.trim(),
         };
         return createSchedule(payload);
       });
@@ -473,8 +507,15 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
       setSchedules([]);
     } catch (error) {
       console.error("Save schedule error:", error);
-      Alert.alert('Error', error.detail || 'Failed to save schedule.');
+      let errorMessage = 'Failed to save schedule.';
+      if (error && error.detail) {
+        errorMessage = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      Alert.alert('Error', errorMessage);
     }
+
   };
 
   return (
@@ -490,10 +531,30 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
       </TouchableOpacity>
 
       <TextInput
+        placeholder="Subject Description"
+        value={subjectDescription}
+        editable={false}
+        style={[styles.input, { backgroundColor: '#f0f0f0', color: '#555' }]} // Visual indication it's read-only
+      />
+
+      <TextInput
         placeholder="Units"
         value={units}
         onChangeText={setUnits}
         keyboardType="numeric"
+        style={styles.input}
+        editable={false}
+      />
+      <TextInput
+        placeholder="Room (e.g., 301)"
+        value={room}
+        onChangeText={setRoom}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Section (e.g., A)"
+        value={section}
+        onChangeText={setSection}
         style={styles.input}
       />
 
@@ -530,6 +591,13 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
               placeholder="Description"
               value={newSubjectDescription}
               onChangeText={setNewSubjectDescription}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Units"
+              value={units}
+              onChangeText={setUnits}
+              keyboardType="numeric"
               style={styles.input}
             />
             <View style={styles.modalButtons}>
@@ -647,39 +715,51 @@ const DropdownExample = () => {
 
 
   const headerOptions = [
-    { label: 'Schedule List', value: 'Schedule List' },
     { label: 'Create Schedule', value: 'Create Schedule' },
-    { label: 'Instructor List', value: 'Instructor List' },
+    { label: 'Schedule List', value: 'Schedule List' },
     { label: 'Logout', value: 'Logout' },
   ];
 
   const showSchedule = headerSelection === 'Create Schedule';
   const showCourseSchedule = headerSelection === 'Schedule List';
-  const showInstructors = headerSelection === 'Instructor List';
 
 
   const fetchSchedules = async () => {
     if (!user) return; // Removed department check as field was deleted from backend
     setLoadingSchedule(true);
     try {
-      const data = await getSchedules();
+      const [schedulesData, subjectsData] = await Promise.all([
+        getSchedules(),
+        getSubjects()
+      ]);
+
+      // Create a map for quick subject lookup
+      const subjectMap = {};
+      if (subjectsData) {
+        subjectsData.forEach(sub => {
+          subjectMap[sub.subject_code] = sub;
+        });
+      }
+
       // Map backend fields to frontend local state format
-      const mapped = data.map(s => {
+      const mapped = schedulesData.map(s => {
         // Find instructor name from instructors list if available
         const inst = instructors.find(i => i.id === s.instructor_id);
+        const subject = subjectMap[s.subject_code];
         const dayMap = { 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday' };
+
         return {
           ...s,
           subjectCode: s.subject_code,
-          subjectDescription: s.subject_description || 'N/A', // Assuming we might add this or fetch it
+          subjectDescription: subject ? subject.subject_description : 'N/A',
           instructor: inst ? inst.name : s.instructor_id,
           schedule: `${dayMap[s.day] || s.day}, ${s.start_time}-${s.end_time}`,
-          units: s.units || 'N/A'
+          units: subject ? subject.units.toString() : (s.units || 'N/A')
         };
       });
       setSchedule(mapped);
     } catch (e) {
-      console.error("Failed to fetch schedules:", e);
+      console.log("Failed to fetch schedules (likely due to legacy data mismatch):", e);
     } finally {
       setLoadingSchedule(false);
     }
@@ -875,65 +955,6 @@ const DropdownExample = () => {
 
 
 
-        {showInstructors && (
-          <>
-            <Text style={styles.scheduleTitle}>Instructor List</Text>
-            {!selectedViewing && (
-              <>
-                {viewingButtons.map(button => (
-                  <View key={button.id} style={styles.viewingButtonContainer}>
-                    <TouchableOpacity style={styles.categoryButton} onPress={() => setSelectedViewing(button.id)}>
-                      <Text style={styles.categoryButtonText}>{button.name}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.editButton} onPress={() => setEditingViewing(button)}>
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveViewing(button.id)}>
-                      <Text style={styles.removeButtonText}>Remove</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-                <TouchableOpacity style={styles.addButton} onPress={() => setAddViewingModalVisible(true)}>
-                  <Text style={styles.addButtonText}>Add Viewing</Text>
-                </TouchableOpacity>
-              </>
-            )}
-            {selectedViewing && (
-              <>
-                <TouchableOpacity style={styles.backButton} onPress={() => setSelectedViewing(null)}>
-                  <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
-                <ScrollView horizontal>
-                  <View style={styles.tableContainer}>
-                    <View style={[styles.tableRow, styles.tableHeader]}>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Instructor ID</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Instructor Name</Text>
-                      <Text style={[styles.tableCell, styles.headerCell]}>Actions</Text>
-                    </View>
-                    {instructorsByViewing[selectedViewing]?.map((inst) => (
-                      <View key={inst.id} style={styles.tableRow}>
-                        <Text style={styles.tableCell}>{inst.id}</Text>
-                        <Text style={styles.tableCell}>{inst.name}</Text>
-                        <View style={[styles.tableCell, styles.actionsCell]}>
-                          <TouchableOpacity
-                            style={[styles.actionButton, { backgroundColor: '#ae2222ff' }]}
-                            onPress={() => handleRemoveInstructor(inst.id)}
-                          >
-                            <Text style={styles.actionText}>Remove</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    )) || <Text style={{ padding: 10, fontStyle: 'italic' }}>No instructors in this viewing.</Text>}
-                  </View>
-                </ScrollView>
-                <TouchableOpacity style={styles.addButton} onPress={() => setAddInstructorModalVisible(true)}>
-                  <Text style={styles.addButtonText}>Add Instructor</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </>
-        )}
-
 
 
 
@@ -950,14 +971,16 @@ const DropdownExample = () => {
           onSave={handleAddViewing}
         />
 
-        {editingViewing && (
-          <EditViewingModal
-            visible={!!editingViewing}
-            onClose={() => setEditingViewing(null)}
-            onSave={(name) => handleEditViewing(editingViewing.id, name)}
-            initialName={editingViewing.name}
-          />
-        )}
+        {
+          editingViewing && (
+            <EditViewingModal
+              visible={!!editingViewing}
+              onClose={() => setEditingViewing(null)}
+              onSave={(name) => handleEditViewing(editingViewing.id, name)}
+              initialName={editingViewing.name}
+            />
+          )
+        }
 
         <AddInstructorModal
           visible={addInstructorModalVisible}
@@ -967,8 +990,8 @@ const DropdownExample = () => {
           onSave={handleAddInstructor}
         />
 
-      </View>
-    </ImageBackground>
+      </View >
+    </ImageBackground >
   );
 };
 

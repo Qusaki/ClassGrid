@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import useAuthStore from '../../store/authStore';
 import { getSchedules } from '../../api/schedules';
+import { getSubjects } from '../../api/subjects';
 import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect }) => {
@@ -288,15 +289,29 @@ const DropdownExample = () => {
     if (!user?.user_id) return;
     setLoading(true);
     try {
-      const data = await getSchedules(user.user_id);
+      const [schedulesData, subjectsData] = await Promise.all([
+        getSchedules(user.user_id),
+        getSubjects()
+      ]);
+
+      // Create a map for quick subject lookup
+      const subjectMap = {};
+      if (subjectsData) {
+        subjectsData.forEach(sub => {
+          subjectMap[sub.subject_code] = sub;
+        });
+      }
+
       // Map backend fields to frontend local state format
-      const mapped = data.map(s => {
+      const mapped = schedulesData.map(s => {
+        const subject = subjectMap[s.subject_code];
         const dayMap = { 'Mon': 'Monday', 'Tue': 'Tuesday', 'Wed': 'Wednesday', 'Thu': 'Thursday', 'Fri': 'Friday', 'Sat': 'Saturday', 'Sun': 'Sunday' };
         return {
           ...s,
           subjectCode: s.subject_code,
-          subjectDescription: s.subject_description || 'N/A',
-          schedule: `${dayMap[s.day] || s.day}, ${s.start_time}-${s.end_time}`
+          subjectDescription: subject ? subject.subject_description : 'N/A',
+          schedule: `${dayMap[s.day] || s.day}, ${s.start_time}-${s.end_time}`,
+          units: subject ? subject.units.toString() : (s.units || 'N/A')
         };
       });
       setSchedule(mapped);

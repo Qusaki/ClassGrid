@@ -8,3 +8,12 @@ export const createSubject = async (subjectData) => {
         throw error.response?.data?.detail || 'Failed to create subject';
     }
 };
+
+export const getSubjects = async () => {
+    try {
+        const response = await client.get('/subjects/');
+        return response.data;
+    } catch (error) {
+        throw error.response?.data?.detail || 'Failed to fetch subjects';
+    }
+};
