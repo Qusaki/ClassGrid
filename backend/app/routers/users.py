@@ -115,11 +115,6 @@ async def read_users_by_department(
     department: str,
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != "chairperson":
-        raise HTTPException(
-            status_code=403,
-            detail="Only chairpersons can access this endpoint",
-        )
-
+  
     users = await User.find(User.department == department).to_list()
     return users
