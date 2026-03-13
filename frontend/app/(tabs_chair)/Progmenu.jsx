@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { useEffect, useState } from 'react';
-import { FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
+import { FlatList, ImageBackground, Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createSubject, getSubjects } from '../../api/subjects';
 import { createSchedule, getSchedules } from '../../api/schedules';
@@ -1001,7 +1001,9 @@ const DropdownExample = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 30) : 40,
+    paddingBottom: 20,
     marginTop: 0,
     flex: 1,
   },
@@ -1013,7 +1015,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   headerButton: {
-    marginTop: 15,
+    marginTop: 0,
     backgroundColor: '#070707ff',
     paddingVertical: 10,
     paddingHorizontal: 15,
@@ -1028,7 +1030,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'flex-start',
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 30) + 50 : 90,
     paddingHorizontal: 20,
   },
   dropdownMenu: {

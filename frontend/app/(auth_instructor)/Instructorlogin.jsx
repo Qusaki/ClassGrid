@@ -44,14 +44,14 @@ export default function Example() {
                 alt="App Logo"
                 resizeMode="contain"
                 style={styles.headerImg}
-                source={{ uri: 'https://scontent.fmnl17-6.fna.fbcdn.net/v/t1.15752-9/542009147_764160926408947_8654842669446252397_n.png?_nc_cat=109&ccb=1-7&_nc_sid=9f807c&_nc_ohc=1LA14WUL2bgQ7kNvwFwFlzS&_nc_oc=AdkyrtHw14d1JqV-Sfv7qgk_tlT_K84IFHD1Hsn4TnMIzUwLz46WRwEujuCkYDA-yKU&_nc_zt=23&_nc_ht=scontent.fmnl17-6.fna&oh=03_Q7cD3wGITjkEzUUXDCtYx4E_57rZszoC_bkEXJGgoUfGDgcbPA&oe=6934E5AE' }} />
+                source={require('../../assets/images/classgrid_logo.png')} />
 
               <Text style={styles.title}>
                 Instructor <Text style={{ color: '#686869ff' }}></Text>
               </Text>
 
               <Text style={styles.subtitle}>
-                Create you schedule hussle free!
+                Create your schedule hassle-free!
               </Text>
             </View>
 

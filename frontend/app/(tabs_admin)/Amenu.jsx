@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
 import useRequestStore from '../../store/requestStore';
-import { Alert, FlatList, ImageBackground, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, ImageBackground, Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const HeaderDropdownMenu = ({ options, onSelect, onLogout }) => {
   const navigation = useNavigation();
@@ -25,7 +25,7 @@ const HeaderDropdownMenu = ({ options, onSelect, onLogout }) => {
   return (
     <View style={styles.headerContainer}>
       <TouchableOpacity onPress={() => setVisible(!visible)} style={styles.headerButton}>
-        <Text style={styles.headerButtonText}>{visible ? "MENU ▲" : "MENU ▼"}</Text>
+        <Text style={styles.headerButtonText}>{visible ? "Menu ▲" : "Menu ▼"}</Text>
       </TouchableOpacity>
       <Modal
         transparent
@@ -71,8 +71,8 @@ const InstructorsList = ({ instructors, onSelectInstructor, onDeleteInstructor, 
   return (
     <View style={styles.tableContainer}>
       <View style={[styles.tableRow, styles.tableHeader]}>
-        <Text style={[styles.tableCell, styles.headerCell]}>Name</Text>
-        <Text style={[styles.tableCell, styles.headerCell]}>Actions</Text>
+        <Text style={[styles.tableCell, styles.headerCell, { flex: 3 }]}>Name</Text>
+        <Text style={[styles.tableCell, styles.headerCell, { flex: 1, textAlign: 'center' }]}>Actions</Text>
       </View>
       {instructors.length === 0 ? (
         <Text style={{ padding: 10, fontStyle: 'italic' }}>No instructors available.</Text>
@@ -80,23 +80,23 @@ const InstructorsList = ({ instructors, onSelectInstructor, onDeleteInstructor, 
         instructors.map((instructor) => (
           <View key={instructor.id} style={styles.tableRow}>
             <TouchableOpacity
-              style={[styles.tableCell, { flex: 3 }]} // Give name column more width
+              style={[styles.tableCell, { flex: 3 }]}
               onPress={() => onSelectInstructor(instructor.name)}
             >
               <Text style={styles.tableCellText}>{instructor.name}</Text>
             </TouchableOpacity>
-            <View style={[styles.tableCell, styles.actionsCell]}>
+            <View style={[styles.tableCell, styles.actionsCell, { flex: 1, justifyContent: 'center' }]}>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: '#007AFF' }]}
                 onPress={() => onEditInstructor(instructor)}
               >
-                <Text style={styles.actionText}>Edit</Text>
+                <Ionicons name="pencil" size={16} color="white" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: '#ff4d4d' }]}
                 onPress={() => onDeleteInstructor(instructor.id)}
               >
-                <Text style={styles.actionText}>Delete</Text>
+                <Ionicons name="trash" size={16} color="white" />
               </TouchableOpacity>
             </View>
           </View>
@@ -624,7 +624,9 @@ const DropdownExample = () => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 5,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 30) : 40,
+    paddingBottom: 20,
     marginTop: 0,
     flex: 1,
   },
@@ -634,9 +636,10 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     marginBottom: 10,
+    alignItems: 'flex-start',
   },
   headerButton: {
-    marginTop: 15,
+    marginTop: 0,
     backgroundColor: '#070707ff',
     paddingVertical: 10,
     paddingHorizontal: 15,
@@ -651,7 +654,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',
     justifyContent: 'flex-start',
-    paddingTop: 60,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 30) + 50 : 90,
     paddingHorizontal: 20,
   },
   dropdownMenu: {
@@ -694,7 +697,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
     backgroundColor: 'white',
-    minWidth: 300,
+    width: '100%',
   },
   tableRow: {
     flexDirection: 'row',
@@ -724,10 +727,10 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     backgroundColor: '#070707ff',
-    paddingHorizontal: 10,
+    paddingHorizontal: 6, // Shrink button width
     paddingVertical: 5,
     borderRadius: 3,
-    marginHorizontal: 5,
+    marginHorizontal: 3, // Shrink button horizontal margin
   },
   actionText: {
     color: 'white',
