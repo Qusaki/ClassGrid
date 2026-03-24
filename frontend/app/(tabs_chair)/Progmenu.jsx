@@ -523,7 +523,11 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
   };
 
   return (
-    <View style={styles.formContainer}>
+    <ScrollView
+      style={styles.formContainer}
+      contentContainerStyle={{ padding: 20, paddingBottom: 60 }} // Extra padding at bottom to clear navigation
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.formTitle}>Create Schedule</Text>
 
       <TouchableOpacity style={styles.dropdown} onPress={() => setSubjectModalVisible(true)}>
@@ -690,7 +694,7 @@ const CreateScheduleForm = ({ onSave, existingSchedules = [], instructors: props
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -1284,7 +1288,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   formContainer: {
-    padding: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     margin: 10,
     borderRadius: 10,
