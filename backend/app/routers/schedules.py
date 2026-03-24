@@ -45,10 +45,21 @@ async def check_conflict(
     if exclude_schedule_id:
         schedules = schedules.find(Schedule.id != exclude_schedule_id)
 
-    if await schedules.count() > 0:
+    conflicting_schedule = await schedules.first_or_none()
+    if conflicting_schedule:
+        day_map = {
+            DayOfWeek.Monday: "Monday",
+            DayOfWeek.Tuesday: "Tuesday",
+            DayOfWeek.Wednesday: "Wednesday",
+            DayOfWeek.Thursday: "Thursday",
+            DayOfWeek.Friday: "Friday",
+            DayOfWeek.Saturday: "Saturday",
+            DayOfWeek.Sunday: "Sunday",
+        }
+        day_name = day_map.get(conflicting_schedule.day, conflicting_schedule.day)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Schedule conflict detected for this instructor.",
+            detail=f"Schedule conflict detected. This time overlaps with another schedule on {day_name}, {conflicting_schedule.start_time}-{conflicting_schedule.end_time}.",
         )
 
 
